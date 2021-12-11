@@ -1,0 +1,16 @@
+{
+  "R": {
+    "Version": "4.1.0",
+    "Repositories": [
+      {
+        "Name": "CRAN",
+        "URL": "https://cran.rstudio.com"
+      }
+    ]
+  },
+  "Python": {
+    "Version": "3.6.10",
+    "Type": "virtualenv",
+    "Name": "spec_param"
+  }
+}
