@@ -2,6 +2,7 @@ library(shiny)
 library(shinythemes)
 library(shinyjs)
 library(shinyWidgets)
+library(png)
 
 shinyUI(fluidPage(theme = shinytheme("sandstone"),
                   useShinyjs(),
@@ -18,6 +19,7 @@ shinyUI(fluidPage(theme = shinytheme("sandstone"),
         uiOutput("sidebarPanel"),
         mainPanel(
             tabsetPanel(id = "tab",
+                tabPanel(title = "Upload"),
                 tabPanel(title = "About",
                          h2("'specparam' Algorithm"),
                          HTML(overview_top),
