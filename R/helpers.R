@@ -1,4 +1,5 @@
 library(gghighlight)
+library(plotly)
 
 psd_facet_plot <- function(df, freq_low, freq_high, log_freq, log_power, all_elec, elec){
   
@@ -35,11 +36,9 @@ psd_facet_plot <- function(df, freq_low, freq_high, log_freq, log_power, all_ele
   
 }
 
-
 # ---------------------------------------------------------------------------------------------
 
-
-psd_all_plot <- function(df, freq_low, freq_high, log_freq, log_power, all_elec, elec){
+psd_all_plot <- function(df, freq_low, freq_high, log_freq, log_power, all_elec, elec, id, alpha, cond, channel){
   
   df_all <- df$spectrum %>% 
             as.data.frame() %>% 
@@ -47,7 +46,8 @@ psd_all_plot <- function(df, freq_low, freq_high, log_freq, log_power, all_elec,
             dplyr::filter(freq > freq_low, freq < freq_high) %>% 
             tidyr::pivot_longer(., cols = -freq) %>% 
             mutate(Electrode = name,
-                   power = value)
+                   power = value,
+                   select_flg = ifelse(Electrode == elec, "selected", "not_selected"))
   
   df_avg <- df$spectrum %>%
             as.data.frame() %>%
@@ -67,12 +67,25 @@ psd_all_plot <- function(df, freq_low, freq_high, log_freq, log_power, all_elec,
     df_avg$Avg <- log(df_avg$Avg)
   }
   
-  ggplot() +
-    geom_line(data = df_avg, mapping = aes(x = freq, y = Avg, group = Electrode), col = "black", size = 1.2) +
-    geom_line(data = df_all, mapping = aes(x = freq, y = power, group = Electrode), col = "gray", alpha = .7) +
+  if (alpha == "Yes") {
+    alpha_text <- paste0(" with alpha peak between 8.0 and 12.0 Hz")  
+  } else {
+    alpha_text <- paste0(" with no alpha peak between 8.0 and 12.0 Hz")
+  }
+  
+  p <- ggplot() +
+    geom_line(data = df_avg, mapping = aes(x = freq, y = Avg, group = Electrode), col = "black", size = 1.1) +
+    geom_line(data = subset(df_all, select_flg == "selected"), mapping = aes(x = freq, y = power, group = Electrode), col = "red", alpha = .7) +
     xlab("Frequency") +
     ylab("Power") +
-    ggtitle("Average of Electrodes") + 
+    ggtitle(paste0(id, ": ", cond, " ", channel, ", ", elec, " electrode (red)", alpha_text)) + 
     theme_classic()
+  
+  if (all_elec) {
+    p <- p + geom_line(data = subset(df_all, select_flg == "not_selected"), mapping = aes(x = freq, y = power, group = Electrode), col = "gray", alpha = .5)
+  }
+  
+  gg <- ggplotly(p, tooltip = "Electrode")
+  highlight(gg, on = "plotly_hover", off = "plotly_deselect")
   
 }

@@ -19,7 +19,6 @@ shinyUI(fluidPage(theme = shinytheme("sandstone"),
         uiOutput("sidebarPanel"),
         mainPanel(
             tabsetPanel(id = "tab",
-                tabPanel(title = "Upload"),
                 tabPanel(title = "About",
                          h2("'specparam' Algorithm"),
                          HTML(overview_top),
@@ -29,19 +28,17 @@ shinyUI(fluidPage(theme = shinytheme("sandstone"),
                          br(),
                          h2("Suggested Reporting"),
                          HTML(example_report)),
-                tabPanel(title = "Report",
-                         plotOutput("report_plot")),
                 tabPanel(title = "Data",
                          h4("FOOOF Settings for subjects without alpha peak"),
                          `no_alpha_fooof_settings`,
                          hr(),
                          br(),
-                         plotOutput("psd_all_plot"),
+                         plotly::plotlyOutput("psd_all_plot"),
                          plotOutput("psd_facet_plot"),
                          br(),
                          DT::dataTableOutput("subject_data")),
-                tabPanel(title = "Website",
-                         tags$iframe(src="https://fooof-tools.github.io/fooof/#", height=1200, width=1600)))
+                tabPanel(title = "Report",
+                         plotOutput("report_plot")))
         )
     )
 ))

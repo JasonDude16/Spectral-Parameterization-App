@@ -15,7 +15,6 @@ shinyServer(function(input, output) {
     return(sub)
   })
   
-  
   fm <- eventReactive(input$run || input$tab == "Report", {
 
     fm <- fooof$FOOOF(peak_width_limits = as.list(c(input$peak_width_limits[1], input$peak_width_limits[2])), 
@@ -33,7 +32,6 @@ shinyServer(function(input, output) {
     
   })
   
-  
   output$ui_condition <- renderUI({
     if (input$tab == "About" && is.null(input$condition)) {
       selected <- "EC"
@@ -45,7 +43,6 @@ shinyServer(function(input, output) {
                 choices = c("EC", "EO"),
                 selected = selected)
   })
-  
   
   output$ui_channels <- renderUI({
     if (input$tab == "About" && is.null(input$channels)) {
@@ -59,7 +56,6 @@ shinyServer(function(input, output) {
                 selected = selected)
   })
   
-  
   output$ui_electrodes <- renderUI({
     elecs <- colnames(df[[input$condition]][[input$channels]][[1]]$spectrum)
     selectInput(inputId = "electrode", 
@@ -68,13 +64,18 @@ shinyServer(function(input, output) {
                 selected = input$electrode)
   })
   
-  
   output$ui_subject_selected <- renderUI({
+    
+    req(input$alpha)
     
     IDs <- names(df[[input$condition]][[input$channels]])
     
-    if (!is.null(input$alpha) && all(input$alpha == FALSE)) {
+    if (!is.null(input$alpha) && input$alpha == "No") {
       IDs <- intersect(IDs, no_alpha[[input$condition]][[input$channels]][[input$electrode]])
+    }
+    
+    if (!is.null(input$alpha) && input$alpha == "Yes") {
+      IDs <- setdiff(IDs, no_alpha[[input$condition]][[input$channels]][[input$electrode]])
     }
     
     selectInput(inputId = "subject", 
@@ -82,7 +83,6 @@ shinyServer(function(input, output) {
                 choices = IDs, 
                 selected = input$subject)
   })
-  
   
   output$ui_freq_range <- renderUI({
     if (is.null(input$freq_range)) {
@@ -98,8 +98,6 @@ shinyServer(function(input, output) {
                 value = selected)
   })
   
-  
-  
   output$ui_peak_width_limits <- renderUI({
     if (is.null(input$peak_width_limits)) {
       selected <- c(2.5, 8)
@@ -113,7 +111,6 @@ shinyServer(function(input, output) {
                 step = 0.5,
                 value = selected)
   })
-  
   
   output$ui_max_n_peaks <- renderUI({
     if (is.null(input$max_n_peaks)) {
@@ -129,7 +126,6 @@ shinyServer(function(input, output) {
                  value = selected)
   })
   
-  
   output$ui_peak_threshold <- renderUI({
     if (is.null(input$peak_threshold)) {
       selected <- 2
@@ -143,7 +139,6 @@ shinyServer(function(input, output) {
                  step = 0.5,
                  value = selected)
   })
-  
   
   output$ui_min_peak_height <- renderUI({
     if (is.null(input$min_peak_height)) {
@@ -159,7 +154,6 @@ shinyServer(function(input, output) {
                  value = selected)
   })
   
-  
   output$ui_aperiodic_mode <- renderUI({
     if (input$tab == "About" && is.null(input$condition)) {
       selected <- "fixed"
@@ -172,35 +166,23 @@ shinyServer(function(input, output) {
                 selected = selected)
   })
   
-  
   output$ui_plot_log_freq_dat <- renderUI({
     checkboxInput("plot_log_freq_dat", "Plot log(Frequency) on x-axis", value = input$plot_log_freq_dat)
   })
-  
   
   output$ui_plot_log_power <- renderUI({
     checkboxInput("plot_log_power", "Plot log(Power) on y-axis", value = input$plot_log_power)
   })
   
-  
   output$ui_show_electrodes <- renderUI({
     checkboxInput("all_elec", "Show all electrodes", value = input$all_elec)
   })
   
-  
   output$ui_alpha <- renderUI({
-    if (is.null(input$alpha)) {
-      selected <- c("Yes" = TRUE, "No" = FALSE)
-    } else {
-      selected <- input$alpha
-    }
-    selectInput(inputId = "alpha",
-                label = "Subject had alpha peak?",
-                choices = c("Yes" = TRUE, "No" = FALSE),
-                multiple = TRUE,
-                selected = selected)
+    radioButtons(inputId = "alpha",
+                 label = "Subject had alpha peak?",
+                 choices = c("Yes", "No"))
   })
-  
   
   output$sidebarPanel <- renderUI({
     
@@ -236,24 +218,25 @@ shinyServer(function(input, output) {
   
   })
   
-  
   output$subject_data <- DT::renderDataTable({
     as.data.frame(df[[input$condition]][[input$channels]][[input$subject]]$spectrum) %>% 
       mutate(Avg = rowMeans(.), Freq = df[[input$condition]][[input$channels]][[input$subject]]$freqs) %>% 
       round(2)
   })
   
-  
-  output$psd_all_plot <- renderPlot({
+  output$psd_all_plot <- plotly::renderPlotly({
     psd_all_plot(df = df[[input$condition]][[input$channels]][[input$subject]],
                  freq_low = input$freq_range[1],
                  freq_high = input$freq_range[2],
                  log_freq = input$plot_log_freq_dat,
                  log_power = input$plot_log_power,
                  all_elec = input$all_elec,
-                 elec = input$electrode)
+                 elec = input$electrode,
+                 id = input$subject,
+                 alpha = input$alpha,
+                 cond = input$condition,
+                 chan = input$channels)
   })
-  
   
   output$psd_facet_plot <- renderPlot({
     psd_facet_plot(df = df[[input$condition]][[input$channels]][[input$subject]], 
@@ -265,12 +248,10 @@ shinyServer(function(input, output) {
                    elec = input$electrode)
   })
   
-  
   output$report_plot <- renderImage({
     file <- tempfile(fileext = ".png")
     fm()$save_report(file)
     list(src = file, width = 800, height = 1000)
   }, deleteFile = TRUE)
-    
     
 })
