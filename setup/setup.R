@@ -8,6 +8,13 @@ install_miniconda()
 (cl <- conda_list())
 retic <- cl[cl$name == "r-reticulate", ]$python
 
-# add reticulate install to R Profile
+if (.Platform$OS.type == "windows") 
+    retic <- gsub('"', "", gsub("\\\\", "/", retic)) 
+
+# add reticulate python version to R Profile (only for local project)
 ll <- readLines(".Rprofile")
-writeLines(text = paste0(ll, "\n", paste0("Sys.setenv(RETICULATE_PYTHON = '", retic, "')")), con = "./.Rprofile")
+
+if (!exists("done") || !done) {
+    writeLines(text = paste0(ll, "\n", paste0("Sys.setenv(RETICULATE_PYTHON = '", retic, "')")), con = "./.Rprofile")
+    done <- TRUE
+}
