@@ -18,3 +18,9 @@ if (!exists("done") || !done) {
     writeLines(text = paste0(ll, "\n", paste0("Sys.setenv(RETICULATE_PYTHON = '", retic, "')")), con = "./.Rprofile")
     done <- TRUE
 }
+
+# restarting R so .Rprofile can update
+.rs.restartR()
+
+# very hacky way to do this but should work since versions aren't critical
+py_install(read.table("requirements.txt", header = F, sep = "=")[[1]])
