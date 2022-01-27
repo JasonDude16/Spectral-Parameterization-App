@@ -15,8 +15,10 @@ shinyServer(function(input, output) {
     return(sub)
   })
   
+  # spec param model
   fm <- eventReactive(input$run || input$tab == "Report", {
 
+    # initializing fooof
     fm <- fooof$FOOOF(peak_width_limits = as.list(c(input$peak_width_limits[1], input$peak_width_limits[2])), 
                       max_n_peaks = input$max_n_peaks, 
                       min_peak_height = input$min_peak_height, 
@@ -70,10 +72,12 @@ shinyServer(function(input, output) {
     
     IDs <- names(df[[input$condition]][[input$channels]])
     
+    # only listing IDs with no alpha peak at electrode
     if (!is.null(input$alpha) && input$alpha == "No") {
       IDs <- intersect(IDs, no_alpha[[input$condition]][[input$channels]][[input$electrode]])
     }
     
+    # only listing IDs with alpha peak at electrode
     if (!is.null(input$alpha) && input$alpha == "Yes") {
       IDs <- setdiff(IDs, no_alpha[[input$condition]][[input$channels]][[input$electrode]])
     }
@@ -184,6 +188,7 @@ shinyServer(function(input, output) {
                  choices = c("Yes", "No"))
   })
   
+  # change this to hidden parameter tabs
   output$sidebarPanel <- renderUI({
     
     if (input$tab %in% c("About", "Report")) {
