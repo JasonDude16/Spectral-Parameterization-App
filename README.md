@@ -1,2 +1,2 @@
 ![Report](imgs/report.png)
-![Plot](imgs/plot.png)
+![Plot](imgs/plotting.png)
